@@ -18,6 +18,8 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
+import { Address } from "@coinbase/onchainkit/identity"
+import { useAccount } from "wagmi"
 
 // Types and Interfaces
 interface BaseBasketProps {
@@ -219,6 +221,11 @@ const CoinCard = memo(({
 CoinCard.displayName = 'CoinCard'
 
 export default function BaseBasket({ onSubmit }: BaseBasketProps) {
+  const { address } = useAccount()
+  const [dynamicCoins, setDynamicCoins] = useState<Coin[]>(COINS);
+  const [isLoading, setIsLoading] = useState(false);
+
+
   // State
   const [answers, setAnswers] = useState<string[]>(new Array(QUESTIONS.length).fill(""))
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null)
@@ -252,6 +259,55 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
     }
   }, [answers, selectedCoin, funds, onSubmit])
 
+  const postAnswerAndGetBucketList = useCallback(async () => {
+    console.log("Posting answers:", answers)
+    setIsLoading(true);
+    //create a post api to send the ans and get bucket list in the response
+    try {
+      const response = await fetch('http://localhost:8080/api/v1/ans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: address,
+          ans_of_q1: answers[0],
+          ans_of_q2: answers[1],
+          ans_of_q3: answers[2]
+        })
+      });
+
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch bucket list');
+      }
+
+      const data = await response.json();
+      console.log("Data:", data);
+      const bucketList = data.data || [];  // Assuming the array is in data property
+      console.log("Bucket List:", bucketList);
+
+      const formattedCoins: Coin[] = bucketList.map((coin: any) => ({
+        name: coin.name,
+        value: coin.current_price,
+        percentage: coin.allocation_percentage,
+        additionalInfo: coin.description || `${coin.name} investment option`
+      }));
+
+      setDynamicCoins(formattedCoins);
+      setShowQuestions(false)
+      setIsLoading(false);
+      return bucketList;
+    } catch (error) {
+      console.error('Error fetching bucket list:', error);
+
+      setIsLoading(false);
+      throw error;
+    }
+
+
+  }, [answers])
+
   const handleBack = useCallback(() => {
     setShowQuestions(true)
     setSelectedCoin(null)
@@ -278,7 +334,11 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
       <Progress value={progress} className="mb-8" />
 
       <AnimatePresence mode="wait">
-        {showQuestions ? (
+        {showQuestions ? (isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) :
           <motion.div
             key="questions"
             {...fadeAnimation}
@@ -300,7 +360,8 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
                 className="flex justify-center"
               >
                 <Button
-                  onClick={() => setShowQuestions(false)}
+                  onClick={() => postAnswerAndGetBucketList()}
+
                   className="px-8 py-4 text-lg"
                 >
                   Continue to Investment
@@ -334,7 +395,7 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
                 Select a Coin
               </motion.h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {COINS.map((coin, index) => (
+                {dynamicCoins.map((coin, index) => (
                   <motion.div
                     key={coin.name}
                     initial={{ opacity: 0, y: 20 }}
