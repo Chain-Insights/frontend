@@ -51,7 +51,7 @@ export default function WalletWrapper({
         };
 
         initializeWallet().catch(console.error);
-    }, [isConnected, address]);
+    }, [isConnected, address, getUserDetails, registerWallet]);
 
     return (
         <>

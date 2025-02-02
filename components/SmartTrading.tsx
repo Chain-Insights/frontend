@@ -261,7 +261,7 @@ export default function SmartTrading() {
                     <TableRow key={coin.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center">
-                          <img src={coin.logo || "/placeholder.svg"} alt={coin.name} className="w-6 h-6 mr-2" />
+                          {/* <img src={coin.logo || "/placeholder.svg"} alt={coin.name} className="w-6 h-6 mr-2" /> */}
                           {coin.name} ({coin.symbol})
                         </div>
                       </TableCell>

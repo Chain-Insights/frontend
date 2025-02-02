@@ -6,7 +6,7 @@ export default function Header(/* { isLoggedIn, onLogin, onSignup, onLogout }: H
   return (
     <header className="flex justify-between items-center p-4 bg-gray-100">
       <div className="flex items-center">
-        <img src="/placeholder.svg?height=40&width=40" alt="Logo" className="w-10 h-10 mr-2" />
+        {/* <img src="/placeholder.svg?height=40&width=40" alt="Logo" className="w-10 h-10 mr-2" /> */}
         <h1 className="text-xl font-bold">Investment App</h1>
       </div>
       {/* Commenting out the login/signup/logout functionality

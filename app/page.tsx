@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import Header from "../components/Header"
+
 import CardSelection from "../components/CardSelection"
 import BaseBasket from "../components/BaseBasket"
 import SmartTrading from "../components/SmartTrading"
