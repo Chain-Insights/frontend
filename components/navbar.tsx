@@ -20,7 +20,7 @@ const Navbar = () => {
                             <Link href="/">
                                 <div className="flex flex-row items-center align-middle justify-center gap-2">
                                     {/* <Image src="/logo.png" alt="Resolutions" width={30} height={30} className="pb-1" /> */}
-                                    <h1 className="text-2xl font-bold text-black">Resolutions</h1>
+                                    <h1 className="text-2xl font-bold text-black">Chaininsight</h1>
                                 </div>
                             </Link>
                         </div>
@@ -40,12 +40,12 @@ const Navbar = () => {
 
                         {/* Desktop navigation */}
                         <div className="hidden md:flex items-center gap-4">
-                            <Link href="/create-resolution">
-                                <button className="text-indigo-600 text-sm font-semibold hover:underline">Create Resolution</button>
-                            </Link>
-                            <Link href="/dashboard">
-                                <button className="text-indigo-600 text-sm font-semibold hover:underline">Dashboard</button>
-                            </Link>
+                            {/* <Link href="/create-resolution"> */}
+                            {/* <button className="text-indigo-600 text-sm font-semibold hover:underline">Create Resolution</button> */}
+                            {/* </Link> */}
+                            {/* <Link href="/dashboard"> */}
+                            {/* <button className="text-indigo-600 text-sm font-semibold hover:underline">Dashboard</button> */}
+                            {/* </Link> */}
                             {/* <div>
                                 <button className="block w-full text-left py-2 text-indigo-600 text-sm font-semibold hover:bg-indigo-50">
                                     Social

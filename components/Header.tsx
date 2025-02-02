@@ -1,15 +1,7 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+type HeaderProps = {}
 
-interface HeaderProps {
-  isLoggedIn: boolean
-  onLogin: () => void
-  onSignup: () => void
-  onLogout: () => void
-}
-
-export default function Header({ isLoggedIn, onLogin, onSignup, onLogout }: HeaderProps) {
-  const [showProfileMenu, setShowProfileMenu] = useState(false)
+export default function Header(/* { isLoggedIn, onLogin, onSignup, onLogout }: HeaderProps */) {
+  // const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   return (
     <header className="flex justify-between items-center p-4 bg-gray-100">
@@ -17,6 +9,7 @@ export default function Header({ isLoggedIn, onLogin, onSignup, onLogout }: Head
         <img src="/placeholder.svg?height=40&width=40" alt="Logo" className="w-10 h-10 mr-2" />
         <h1 className="text-xl font-bold">Investment App</h1>
       </div>
+      {/* Commenting out the login/signup/logout functionality
       <div>
         {isLoggedIn ? (
           <div className="relative">
@@ -42,6 +35,7 @@ export default function Header({ isLoggedIn, onLogin, onSignup, onLogout }: Head
           </div>
         )}
       </div>
+      */}
     </header>
   )
 }
