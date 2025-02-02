@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import { useAccount } from "wagmi"
+import { useTokenTransfer } from "@/hooks/useTokenTransfer"
 import BucketSelection from "./bucketCard"
 // import BucketSelection from './BucketSelection'  // Import the new component
 
@@ -94,6 +95,7 @@ QuestionItem.displayName = 'QuestionItem'
 export default function BaseBasket({ onSubmit }: BaseBasketProps) {
   const { address } = useAccount()
   const [isLoading, setIsLoading] = useState(false)
+  const { handleTransferAndSwap, isTransferring, error: transferError } = useTokenTransfer()
 
   // State
   const [answers, setAnswers] = useState<string[]>(new Array(QUESTIONS.length).fill(""))
@@ -118,10 +120,19 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
   const handleSubmit = useCallback(async () => {
     if (selectedBucket && funds) {
       setIsSubmitting(true)
-      await onSubmit(answers, selectedBucket.name, Number.parseFloat(funds))
-      setIsSubmitting(false)
+      try {
+        // First handle the token transfer and batch swap
+        await handleTransferAndSwap(funds)
+        
+        // Then call the original onSubmit
+        await onSubmit(answers, selectedBucket.name, Number.parseFloat(funds))
+      } catch (error) {
+        console.error('Error during submission:', error)
+      } finally {
+        setIsSubmitting(false)
+      }
     }
-  }, [answers, selectedBucket, funds, onSubmit])
+  }, [answers, selectedBucket, funds, onSubmit, handleTransferAndSwap])
 
   const continueToInvestment = useCallback(() => {
     setIsLoading(true)
@@ -253,11 +264,14 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
                   >
                     <Button
                       onClick={handleSubmit}
-                      disabled={!funds || isSubmitting}
+                      disabled={!funds || isSubmitting || isTransferring}
                       className="w-full"
                     >
-                      {isSubmitting ? "Submitting..." : "Submit Investment"}
+                      {isSubmitting || isTransferring ? "Processing..." : "Submit Investment"}
                     </Button>
+                    {transferError && (
+                      <p className="text-red-500 mt-2 text-sm">{transferError}</p>
+                    )}
                   </motion.div>
                 </motion.div>
               )}
