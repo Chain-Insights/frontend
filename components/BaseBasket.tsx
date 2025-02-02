@@ -31,11 +31,22 @@ interface Question {
   options: string[]
 }
 
+interface Analysis {
+  marketAnalysis: string
+  riskProfileMatch: string
+  investmentHorizonFit: string
+  experienceLevelMatch: string
+}
+
 interface Coin {
   name: string
-  value: number
-  percentage: number
-  additionalInfo: string
+  symbol: string
+  analysis: {
+    marketAnalysis: string
+    riskProfileMatch: string
+    investmentHorizonFit: string
+    experienceLevelMatch: string
+  }
 }
 const slideAnimation = {
   initial: { x: -50, opacity: 0 },
@@ -80,27 +91,8 @@ const QUESTIONS: Question[] = [
   }
 ]
 
-const COINS: Coin[] = [
-  {
-    name: "Bitcoin",
-    value: 45000,
-    percentage: 50,
-    additionalInfo: "The world's first and most popular cryptocurrency."
-  },
-  {
-    name: "Ethereum",
-    value: 3000,
-    percentage: 30,
-    additionalInfo: "A decentralized platform that runs smart contracts."
-  },
-  {
-    name: "Cardano",
-    value: 1.5,
-    percentage: 20,
-    additionalInfo: "A proof-of-stake blockchain platform."
-  }
-]
-
+const COINS: Coin[] =
+  [];
 // Memoized Option Button Component
 const OptionButton = memo(({
   option,
@@ -185,8 +177,7 @@ const CoinCard = memo(({
       <CardTitle>{coin.name}</CardTitle>
     </CardHeader>
     <CardContent>
-      <p>Current Value: ${coin.value.toLocaleString()}</p>
-      <p>Investment: {coin.percentage}%</p>
+      <p>{coin.analysis.experienceLevelMatch}</p>
     </CardContent>
     <CardFooter className="flex justify-between">
       <Button
@@ -211,7 +202,12 @@ const CoinCard = memo(({
           transition={{ duration: 0.3 }}
           className="px-4 pb-4"
         >
-          <p>{coin.additionalInfo}</p>
+          <div className="space-y-2">
+            <p><strong>Market Analysis:</strong> {coin.analysis.marketAnalysis}</p>
+            <p><strong>Risk Profile:</strong> {coin.analysis.riskProfileMatch}</p>
+            <p><strong>Investment Horizon:</strong> {coin.analysis.investmentHorizonFit}</p>
+            <p><strong>Experience Level:</strong> {coin.analysis.experienceLevelMatch}</p>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -259,10 +255,56 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
     }
   }, [answers, selectedCoin, funds, onSubmit])
 
+  // const postAnswerAndGetBucketList = useCallback(async () => {
+  //   console.log("Posting answers:", answers)
+  //   setIsLoading(true);
+  //   //create a post api to send the ans and get bucket list in the response
+  //   try {
+  //     const response = await fetch('http://localhost:8080/api/v1/ans', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         user_id: address,
+  //         ans_of_q1: answers[0],
+  //         ans_of_q2: answers[1],
+  //         ans_of_q3: answers[2]
+  //       })
+  //     });
+
+
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch bucket list');
+  //     }
+
+  //     const data = await response.json();
+  //     console.log("Data:", data);
+  //     const bucketList = data.data || [];  // Assuming the array is in data property
+  //     console.log("Bucket List:", bucketList);
+
+  //     const formattedCoins: Coin[] = bucketList.map((coin: any) => ({
+  //       name: coin.name,
+  //       value: coin.current_price,
+  //       percentage: coin.allocation_percentage,
+  //       additionalInfo: coin.description || `${coin.name} investment option`
+  //     }));
+
+  //     setDynamicCoins(formattedCoins);
+  //     setShowQuestions(false)
+  //     setIsLoading(false);
+  //     return bucketList;
+  //   } catch (error) {
+  //     console.error('Error fetching bucket list:', error);
+
+  //     setIsLoading(false);
+  //     throw error;
+  //   }
+
+
+  // }, [answers])
   const postAnswerAndGetBucketList = useCallback(async () => {
-    console.log("Posting answers:", answers)
     setIsLoading(true);
-    //create a post api to send the ans and get bucket list in the response
     try {
       const response = await fetch('http://localhost:8080/api/v1/ans', {
         method: 'POST',
@@ -277,36 +319,24 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
         })
       });
 
-
       if (!response.ok) {
         throw new Error('Failed to fetch bucket list');
       }
 
       const data = await response.json();
-      console.log("Data:", data);
-      const bucketList = data.data || [];  // Assuming the array is in data property
+      const bucketList = data.data || [];
       console.log("Bucket List:", bucketList);
-
-      const formattedCoins: Coin[] = bucketList.map((coin: any) => ({
-        name: coin.name,
-        value: coin.current_price,
-        percentage: coin.allocation_percentage,
-        additionalInfo: coin.description || `${coin.name} investment option`
-      }));
-
-      setDynamicCoins(formattedCoins);
-      setShowQuestions(false)
+      console.log();
+      setDynamicCoins(data.data);
+      setShowQuestions(false);
       setIsLoading(false);
-      return bucketList;
+      return data.data;
     } catch (error) {
       console.error('Error fetching bucket list:', error);
-
       setIsLoading(false);
       throw error;
     }
-
-
-  }, [answers])
+  }, [answers, address]);
 
   const handleBack = useCallback(() => {
     setShowQuestions(true)
