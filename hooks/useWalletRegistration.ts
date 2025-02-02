@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 
 export const useWalletRegistration = () => {
   const { address } = useAccount();
   const [isRegistering, setIsRegistering] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userDetails, setUserDetails] = useState<any>(null);
+  const [smartWalletAddress, setSmartWalletAddress] = useState<`0x${string}` | null>(() => {
+    // Initialize from localStorage if available
+    const stored = localStorage.getItem(`smartWallet_${address}`);
+    return stored ? (stored as `0x${string}`) : null;
+  });
+
+  // Update localStorage when smartWalletAddress changes
+  useEffect(() => {
+    if (address && smartWalletAddress) {
+      localStorage.setItem(`smartWallet_${address}`, smartWalletAddress);
+    }
+  }, [address, smartWalletAddress]);
 
   const registerWallet = async () => {
     if (!address) {
@@ -24,19 +34,23 @@ export const useWalletRegistration = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: address, // Using wallet address as user_id for simplicity
+          user_id: address,
           wallet_address: address,
         }),
       });
-
-      console.log("response", response)
 
       if (!response.ok) {
         throw new Error('Failed to register wallet');
       }
 
       const data = await response.json();
-      console.log("post register data", data)
+      if (data?.wallet_address) {
+        const formattedAddress = data.wallet_address.startsWith('0x')
+          ? data.wallet_address as `0x${string}`
+          : `0x${data.wallet_address}` as `0x${string}`;
+        setSmartWalletAddress(formattedAddress);
+        localStorage.setItem(`smartWallet_${address}`, formattedAddress);
+      }
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to register wallet');
@@ -52,9 +66,6 @@ export const useWalletRegistration = () => {
       return null;
     }
 
-    setIsLoading(true);
-    setError(null);
-
     try {
       const response = await fetch(`https://api-test-production-9439.up.railway.app/api/wallet/${address}`, {
         method: 'GET',
@@ -68,14 +79,25 @@ export const useWalletRegistration = () => {
       }
 
       const data = await response.json();
-      console.log("get user details", data)
-      setUserDetails(data);
+      console.log("data user", data)
+      // if (data?.wallet_address) {
+      //   const formattedAddress = data.wallet_address.startsWith('0x')
+      //     ? data.wallet_address as `0x${string}`
+      //     : `0x${data.wallet_address}` as `0x${string}`;
+      //   setSmartWalletAddress(formattedAddress);
+      //   localStorage.setItem(`smartWallet_${address}`, formattedAddress);
+      // }
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch user details');
       throw err;
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const clearSmartWalletAddress = () => {
+    if (address) {
+      localStorage.removeItem(`smartWallet_${address}`);
+      setSmartWalletAddress(null);
     }
   };
 
@@ -83,8 +105,8 @@ export const useWalletRegistration = () => {
     registerWallet,
     getUserDetails,
     isRegistering,
-    isLoading,
     error,
-    userDetails,
+    smartWalletAddress,
+    clearSmartWalletAddress,
   };
 }; 

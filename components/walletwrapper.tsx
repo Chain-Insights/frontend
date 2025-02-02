@@ -33,7 +33,7 @@ export default function WalletWrapper({
     withWalletAggregator = false,
 }: WalletWrapperParams) {
     const { address, isConnected } = useAccount();
-    const { registerWallet, getUserDetails, isRegistering, isLoading, error, userDetails } = useWalletRegistration();
+    const { registerWallet, getUserDetails, isRegistering, error } = useWalletRegistration();
 
     useEffect(() => {
         const initializeWallet = async () => {
@@ -70,12 +70,11 @@ export default function WalletWrapper({
                         <Name />
                         <Address />
                         <EthBalance />
-                        {userDetails && (
+                        {/* {userDetails && (
                             <div className="mt-2 text-sm text-gray-600">
-                                {/* Add any user details you want to display */}
                                 Registered: ✓
                             </div>
-                        )}
+                        )} */}
                     </Identity>
                     <WalletDropdownBasename />
                     <WalletDropdownLink icon="wallet" href="https://wallet.coinbase.com">

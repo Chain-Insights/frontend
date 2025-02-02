@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAccount, useSendTransaction } from 'wagmi';
 import { parseEther } from 'viem';
 import { useWalletRegistration } from './useWalletRegistration';
@@ -7,29 +7,18 @@ export const useTokenTransfer = () => {
   const { address } = useAccount();
   const [isTransferring, setIsTransferring] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { userDetails, getUserDetails, registerWallet } = useWalletRegistration();
+  const { smartWalletAddress, getUserDetails } = useWalletRegistration();
 
   const { sendTransaction } = useSendTransaction();
 
-  useEffect(() => {
-    const initializeUserDetails = async () => {
-      if (address) {
-        try {
-          // First try to get user details
-          await getUserDetails();
-        } catch (error) {
-          // If getting user details fails, try registering the wallet
-          await registerWallet();
-          // After successful registration, get user details
-          await getUserDetails();
-        }
-      }
-    };
-
-    if (!userDetails && address) {
-      initializeUserDetails().catch(console.error);
-    }
-  }, [address, userDetails, getUserDetails, registerWallet]);
+  // Get smart wallet address from localStorage if not available in state
+  const getStoredSmartWalletAddress = (): `0x${string}` | null => {
+    if (smartWalletAddress) return smartWalletAddress;
+    if (!address) return null;
+    
+    const stored = localStorage.getItem(`smartWallet_${address}`);
+    return stored ? (stored as `0x${string}`) : null;
+  };
 
   const handleTransferAndSwap = async (amount: string) => {
     if (!address) {
@@ -37,8 +26,15 @@ export const useTokenTransfer = () => {
       return;
     }
 
-    if (!userDetails) {
-      setError('No user details available. Please try again.');
+    const targetWalletAddress = getStoredSmartWalletAddress();
+    if (!targetWalletAddress) {
+      setError('Smart wallet address not found. Please try again.');
+      // Try to get user details to refresh the smart wallet address
+      try {
+        await getUserDetails();
+      } catch (error) {
+        console.error("Failed to get user details:", error);
+      }
       return;
     }
 
@@ -49,7 +45,7 @@ export const useTokenTransfer = () => {
       const transferAmount = parseEther(amount);
       
       const hash = await sendTransaction({
-        to: userDetails.wallet_address,
+        to: targetWalletAddress,
         value: transferAmount,
       });
 
@@ -62,7 +58,7 @@ export const useTokenTransfer = () => {
         body: JSON.stringify({
           user_id: address,
           amount: amount,
-          transaction_hash: hash, // Include the transaction hash in the API call
+          transaction_hash: hash,
         }),
       });
 
@@ -71,9 +67,10 @@ export const useTokenTransfer = () => {
       }
 
       const data = await response.json();
-      console.log("token transfer", data);
+      console.log("Token transfer successful:", data);
       return data;
     } catch (err) {
+      console.error("Transfer failed:", err);
       setError(err instanceof Error ? err.message : 'Failed to transfer and swap');
       throw err;
     } finally {
@@ -85,6 +82,6 @@ export const useTokenTransfer = () => {
     handleTransferAndSwap,
     isTransferring,
     error,
-    userDetails, // Also expose userDetails so components can check its status
+    smartWalletAddress: getStoredSmartWalletAddress(),
   };
 }; 
