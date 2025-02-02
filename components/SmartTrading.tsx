@@ -15,7 +15,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ArrowUpDown, ChevronDown } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Question {
   text: string
@@ -67,6 +76,9 @@ export default function SmartTrading() {
   })
   const [graphData, setGraphData] = useState<GraphData[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null)
+  const [showEmailPopup, setShowEmailPopup] = useState(false)
+  const [email, setEmail] = useState("")
 
   const handleAnswerChange = (index: number, value: string) => {
     const newAnswers = [...answers]
@@ -120,8 +132,9 @@ export default function SmartTrading() {
   }
 
   const handleSubmitInvestment = () => {
-    // Implement investment submission logic here
-    console.log("Investment submitted:", { selectedCoin, investmentAmount, answers })
+    console.log("Investment submitted:", { selectedCoin, selectedStrategy, investmentAmount, email })
+    setShowEmailPopup(false)
+    // Implement actual submission logic here
   }
 
   return (
@@ -270,90 +283,136 @@ export default function SmartTrading() {
             </div>
             {selectedCoin && (
               <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-4">Strategy Graphs</h3>
+                <h3 className="text-xl font-semibold mb-4">Select a Strategy</h3>
                 {loading ? (
-                  <div>Loading graph data...</div>
+                  <div>Loading strategy data...</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <ChartContainer
-                      config={{
-                        price: { label: "Price", color: "hsl(var(--chart-1))" },
-                      }}
-                      className="h-[300px]"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={graphData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            dataKey="timestamp"
-                            tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString()}
-                          />
-                          <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Line type="monotone" dataKey="price" stroke="var(--color-price)" name="Price" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-
-                    <ChartContainer
-                      config={{
-                        movingAverage: { label: "Moving Average", color: "hsl(var(--chart-2))" },
-                      }}
-                      className="h-[300px]"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={graphData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            dataKey="timestamp"
-                            tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString()}
-                          />
-                          <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Line
-                            type="monotone"
-                            dataKey="movingAverage"
-                            stroke="var(--color-movingAverage)"
-                            name="Moving Average"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-
-                    <ChartContainer
-                      config={{
-                        momentum: { label: "Momentum", color: "hsl(var(--chart-3))" },
-                      }}
-                      className="h-[300px]"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={graphData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            dataKey="timestamp"
-                            tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString()}
-                          />
-                          <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Line type="monotone" dataKey="momentum" stroke="var(--color-momentum)" name="Momentum" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
+                    {[
+                      { name: "Price Trend", dataKey: "price" },
+                      { name: "Moving Average", dataKey: "movingAverage" },
+                      { name: "Momentum", dataKey: "momentum" },
+                    ].map((strategy, index) => (
+                      <motion.div
+                        key={strategy.name}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                      >
+                        <Card
+                          className={`cursor-pointer transition-all duration-300 ${selectedStrategy === strategy.name ? "border-primary border-2 shadow-lg" : "hover:shadow-md"
+                            }`}
+                          onClick={() => setSelectedStrategy(strategy.name)}
+                        >
+                          <CardHeader>
+                            <CardTitle>{strategy.name}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ChartContainer
+                              config={{
+                                [strategy.dataKey]: {
+                                  label: strategy.name,
+                                  color: `hsl(var(--chart-${index + 1}))`,
+                                },
+                              }}
+                              className="h-[200px] w-full"
+                            >
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={graphData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" opacity={0.3} />
+                                  <XAxis
+                                    dataKey="timestamp"
+                                    tickFormatter={(unixTime) =>
+                                      new Date(unixTime).toLocaleDateString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                      })
+                                    }
+                                    stroke="hsl(var(--muted-foreground))"
+                                    tick={{ fontSize: 10 }}
+                                    tickMargin={5}
+                                  />
+                                  <YAxis
+                                    stroke="hsl(var(--muted-foreground))"
+                                    tick={{ fontSize: 10 }}
+                                    tickFormatter={(value) => `$${value.toFixed(0)}`}
+                                    width={40}
+                                  />
+                                  <ChartTooltip
+                                    content={({ active, payload, label }) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div className="bg-background border border-border p-2 rounded shadow-md text-xs">
+                                            <p className="font-bold">{new Date(label).toLocaleDateString()}</p>
+                                            <p className="text-[hsl(var(--chart-1))]">
+                                              {strategy.name}: ${typeof payload[0].value === 'number' ? payload[0].value.toFixed(2) : payload[0].value}
+                                            </p>
+                                          </div>
+                                        )
+                                      }
+                                      return null
+                                    }}
+                                  />
+                                  <Line
+                                    type="monotone"
+                                    dataKey={strategy.dataKey}
+                                    stroke={`hsl(var(--chart-${index + 1}))`}
+                                    strokeWidth={2}
+                                    dot={false}
+                                    activeDot={{ r: 6 }}
+                                    animationDuration={1000}
+                                    name={strategy.name}
+                                  />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </ChartContainer>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
                   </div>
                 )}
-
-                <div className="mt-8">
-                  <Label htmlFor="investmentAmount">Investment Amount ($)</Label>
-                  <Input
-                    id="investmentAmount"
-                    type="number"
-                    value={investmentAmount}
-                    onChange={(e) => setInvestmentAmount(e.target.value)}
-                    className="mb-4"
-                  />
-                  <Button onClick={handleSubmitInvestment}>Start Smart Trading</Button>
-                </div>
               </div>
+            )}
+            {selectedStrategy && (
+              <div className="mt-8">
+                <Label htmlFor="investmentAmount">Investment Amount ($)</Label>
+                <Input
+                  id="investmentAmount"
+                  type="number"
+                  value={investmentAmount}
+                  onChange={(e) => setInvestmentAmount(e.target.value)}
+                  className="mb-4"
+                />
+                <Button onClick={() => setShowEmailPopup(true)}>Get Buy Signal</Button>
+              </div>
+            )}
+            {showEmailPopup && (
+              <Dialog open={showEmailPopup} onOpenChange={setShowEmailPopup}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Enter your email</DialogTitle>
+                    <DialogDescription>Please provide your email to to get notify.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="email" className="text-right">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleSubmitInvestment}>Submit</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             )}
           </motion.div>
         )}

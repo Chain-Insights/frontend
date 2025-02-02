@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Percent, TrendingUp, Lock } from 'lucide-react'
 
 const INVESTMENT_BUCKETS = {
     memecoin: {
-        name: "High Risk Memecoin Bucket",
+        name: "Memecoin Bucket",
         description: "A collection of popular meme-driven cryptocurrencies for aggressive investors",
         icon: TrendingUp,
         expectedReturn: "High potential returns with high risk",
@@ -44,7 +44,7 @@ const INVESTMENT_BUCKETS = {
         ]
     },
     defi: {
-        name: "Moderate Risk DeFi Bucket",
+        name: "DeFi Bucket",
         description: "Balanced portfolio of decentralized finance protocols",
         icon: Percent,
         expectedReturn: "Moderate returns with yield opportunities",
@@ -82,10 +82,10 @@ const INVESTMENT_BUCKETS = {
         ]
     },
     safe: {
-        name: "Conservative Blue-Chip Bucket",
-        description: "Stable portfolio of established cryptocurrencies",
+        name: "Blue-Chip Bucket",
+        // description: "Stable portfolio of established cryptocurrencies",
         icon: Lock,
-        expectedReturn: "Lower but stable expected returns",
+        // expectedReturn: "Lower but stable expected returns",
         coins: [
             {
                 name: "Bitcoin",
@@ -141,12 +141,12 @@ const BucketCard: React.FC<BucketCardProps> = ({ bucket, type, isSelected, onSel
                     <Icon className="w-6 h-6" />
                     {bucket.name}
                 </CardTitle>
-                <p className="text-sm text-gray-500">{bucket.description}</p>
+                {/* <p className="text-sm text-gray-500">{bucket.description}</p> */}
             </CardHeader>
 
             <CardContent>
                 <div className="space-y-2">
-                    <p className="font-medium">Expected Return: {bucket.expectedReturn}</p>
+                    {/* <p className="font-medium">Expected Return: {bucket.expectedReturn}</p> */}
                     <Button
                         onClick={() => onSelect(type)}
                         variant={isSelected ? "default" : "outline"}

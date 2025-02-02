@@ -1,4 +1,4 @@
-type HeaderProps = {}
+
 
 export default function Header(/* { isLoggedIn, onLogin, onSignup, onLogout }: HeaderProps */) {
   // const [showProfileMenu, setShowProfileMenu] = useState(false)
