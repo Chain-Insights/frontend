@@ -31,28 +31,29 @@ const QUESTIONS: Question[] = [
   {
     text: "How would you describe your risk tolerance?",
     options: [
-      "Conservative: Prefer minimal risk and steady returns.",
-      "Balanced: Comfortable with moderate risk for potentially higher returns.",
-      "Aggressive: Willing to accept higher volatility for the chance of significant gains."
+      "Conservative",
+      "Balanced",
+      "Aggressive"
     ]
   },
   {
     text: "What is your expected investment horizon?",
     options: [
-      "Short-Term: Less than 1 year.",
-      "Medium-Term: 1 to 5 years.",
-      "Long-Term: Over 5 years."
+      "Short-Term",
+      "Medium-Term",
+      "Long-Term"
     ]
   },
   {
     text: "What is your Trading experience?",
     options: [
-      "Beginner: Little or no experience, looking for guided strategies.",
-      "Intermediate: Some trading knowledge and moderate hands-on experience.",
-      "Advanced: Extensive experience and comfortable with complex strategies."
+      "Beginner",
+      "Intermediate",
+      "Advanced"
     ]
   }
 ]
+
 
 // Memoized Question Component
 const QuestionItem = memo(({
@@ -123,7 +124,7 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
       try {
         // First handle the token transfer and batch swap
         await handleTransferAndSwap(funds)
-        
+
         // Then call the original onSubmit
         await onSubmit(answers, selectedBucket.name, Number.parseFloat(funds))
       } catch (error) {
