@@ -16,6 +16,9 @@ import {
     WalletDropdownFundLink,
     WalletDropdownLink,
 } from '@coinbase/onchainkit/wallet';
+import { useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { useWalletRegistration } from '@/hooks/useWalletRegistration';
 
 type WalletWrapperParams = {
     text?: string;
@@ -23,11 +26,33 @@ type WalletWrapperParams = {
     withWalletAggregator?: boolean;
     icon?: React.ReactNode;
 };
+
 export default function WalletWrapper({
     className,
     text,
     withWalletAggregator = false,
 }: WalletWrapperParams) {
+    const { address, isConnected } = useAccount();
+    const { registerWallet, getUserDetails, isRegistering, isLoading, error, userDetails } = useWalletRegistration();
+
+    useEffect(() => {
+        const initializeWallet = async () => {
+            if (isConnected && address) {
+                try {
+                    // First try to get user details
+                    await getUserDetails();
+                } catch (error) {
+                    // If getting user details fails, try registering the wallet
+                    await registerWallet();
+                    // After successful registration, get user details
+                    await getUserDetails();
+                }
+            }
+        };
+
+        initializeWallet().catch(console.error);
+    }, [isConnected, address]);
+
     return (
         <>
             <Wallet>
@@ -45,6 +70,12 @@ export default function WalletWrapper({
                         <Name />
                         <Address />
                         <EthBalance />
+                        {userDetails && (
+                            <div className="mt-2 text-sm text-gray-600">
+                                {/* Add any user details you want to display */}
+                                Registered: ✓
+                            </div>
+                        )}
                     </Identity>
                     <WalletDropdownBasename />
                     <WalletDropdownLink icon="wallet" href="https://wallet.coinbase.com">
