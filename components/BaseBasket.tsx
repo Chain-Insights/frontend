@@ -95,7 +95,7 @@ QuestionItem.displayName = 'QuestionItem'
 export default function BaseBasket({ onSubmit }: BaseBasketProps) {
   const { address } = useAccount()
   const [isLoading, setIsLoading] = useState(false)
-  const { handleTransferAndSwap, isTransferring, error: transferError } = useTokenTransfer()
+  const { handleTransferAndSwap, isTransferring, error: transferError, smartWalletAddress } = useTokenTransfer()
 
   // State
   const [answers, setAnswers] = useState<string[]>(new Array(QUESTIONS.length).fill(""))
@@ -208,74 +208,47 @@ export default function BaseBasket({ onSubmit }: BaseBasketProps) {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            <div className="flex justify-between items-center mb-6">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Questions
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
               </Button>
+              <h2 className="text-2xl font-bold">Investment Details</h2>
             </div>
 
             <BucketSelection onBucketSelect={handleBucketSelect} />
 
-            <AnimatePresence>
-              {selectedBucket && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-gray-50 p-6 rounded-lg"
+            {selectedBucket && (
+              <div className="mt-6">
+                <Label htmlFor="funds">Investment Amount</Label>
+                <div className="mt-2">
+                  <Input
+                    id="funds"
+                    type="number"
+                    value={funds}
+                    onChange={(e) => setFunds(e.target.value)}
+                    placeholder="Enter amount"
+                    disabled={isTransferring}
+                  />
+                </div>
+                {transferError && (
+                  <p className="mt-2 text-sm text-red-500">{transferError}</p>
+                )}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!funds || isSubmitting || isTransferring}
+                  className="mt-4 w-full"
                 >
-                  <motion.h2
-                    className="text-2xl font-bold mb-4 text-primary"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    Define Your Investment
-                  </motion.h2>
-                  <div className="mb-6">
-                    <Label htmlFor="funds" className="text-lg mb-2 block">
-                      How much do you want to invest in {selectedBucket.name}?
-                    </Label>
-                    <motion.div
-                      initial={{ scale: 0.95 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <Input
-                        id="funds"
-                        type="number"
-                        value={funds}
-                        onChange={(e) => setFunds(e.target.value)}
-                        className="text-2xl p-4"
-                        placeholder="Enter amount"
-                        required
-                      />
-                    </motion.div>
-                  </div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={!funds || isSubmitting || isTransferring}
-                      className="w-full"
-                    >
-                      {isSubmitting || isTransferring ? "Processing..." : "Submit Investment"}
-                    </Button>
-                    {transferError && (
-                      <p className="text-red-500 mt-2 text-sm">{transferError}</p>
-                    )}
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {isTransferring ? (
+                    "Processing Transfer..."
+                  ) : isSubmitting ? (
+                    "Submitting..."
+                  ) : (
+                    "Submit Investment"
+                  )}
+                </Button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
